@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"log"
-	"os"
+	//"os"
 )
 
 var db *sql.DB
@@ -20,10 +20,10 @@ type Album struct {
 func main() {
 	// Capture connection properties.
 	cfg := mysql.Config{
-		//User:   "root",
-		//Passwd: "nst",
-		User:                 os.Getenv("DBUSER"),
-		Passwd:               os.Getenv("DBPASS"),
+		User:   "root",
+		Passwd: "nst",
+		//User:                 os.Getenv("DBUSER"),
+		//Passwd:               os.Getenv("DBPASS"),
 		Net:                  "tcp",
 		Addr:                 "127.0.0.1:3306",
 		DBName:               "recordings",
