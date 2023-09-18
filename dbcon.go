@@ -41,11 +41,58 @@ func main() {
 		log.Fatal(pingErr)
 	}
 	fmt.Println("Connected!")
-	albums, err := albumsByArtist("John Coltrane")
+
+	var userInput int64
+
+	fmt.Print("select from 1-5:")
+	fmt.Print("		1--view all")
+	fmt.Print("		2--view by artist")
+	fmt.Print("		3--add album")
+	fmt.Print("		4--delete album ")
+	fmt.Scanln(&userInput)
+
+	switch userInput {
+	case 1:
+		{
+
+		}
+	case 2:
+		{
+			albums, err := albumsByArtist("John Coltrane")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("Albums found: %v\n", albums)
+
+		}
+	case 3:
+		{
+			albID, err := addAlbum(Album{
+				Title:  "The Modern Sound of Betty Carter",
+				Artist: "Betty Carter",
+				Price:  49.99,
+			})
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("ID of added album: %v\n", albID)
+
+		}
+	case 4:
+		{
+
+		}
+
+	default:
+		/* code */
+		return
+	}
+
+	/*albums, err := albumsByArtist("John Coltrane")
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Albums found: %v\n", albums)
+	fmt.Printf("Albums found: %v\n", albums)*/
 
 	albID, err := addAlbum(Album{
 		Title:  "The Modern Sound of Betty Carter",
@@ -56,6 +103,30 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Printf("ID of added album: %v\n", albID)
+
+}
+
+func all_album([]Album, error) {
+	// An albums slice to hold data from returned rows.
+	var albums []Album
+
+	rows, err := db.Query("SELECT * FROM album")
+	if err != nil {
+		return nil, fmt.Errorf(err)
+	}
+	defer rows.Close()
+	// Loop through rows, using Scan to assign column data to struct fields.
+	for rows.Next() {
+		var alb Album
+		if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
+			return nil, fmt.Errorf(err)
+		}
+		albums = append(albums, alb)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf(err)
+	}
+	return albums, nil
 
 }
 
