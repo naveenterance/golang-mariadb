@@ -41,16 +41,23 @@ func main() {
 		log.Fatal(pingErr)
 	}
 	fmt.Println("Connected!")
-	all_album()
+
+	albums, err := all_album()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(albums)
 
 }
 
-func all_album() {
+func all_album() ([]Album, error) {
 	// An albums slice to hold data from returned rows.
 	var albums []Album
 
 	rows, err := db.Query("SELECT * FROM album")
-	_ = err
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	defer rows.Close()
 	// Loop through rows, using Scan to assign column data to struct fields.
@@ -62,7 +69,10 @@ func all_album() {
 
 		albums = append(albums, alb)
 	}
-
-	fmt.Printf("%v", albums)
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("db error")
+	}
+	return albums, nil
+	//fmt.Printf("%v", albums)
 
 }
