@@ -42,7 +42,7 @@ func main() {
 	}
 	fmt.Println("Connected!")
 
-	var userInput int64
+	var userInput int
 
 	fmt.Print("select from 1-5:")
 	fmt.Print("		1--view all")
@@ -91,22 +91,6 @@ func main() {
 		/* code */
 		return
 	}
-
-	/*albums, err := albumsByArtist("John Coltrane")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Albums found: %v\n", albums)*/
-
-	albID, err := addAlbum(Album{
-		Title:  "The Modern Sound of Betty Carter",
-		Artist: "Betty Carter",
-		Price:  49.99,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("ID of added album: %v\n", albID)
 
 }
 
