@@ -44,56 +44,58 @@ func main() {
 
 	var userInput int
 
-	fmt.Print("select from 1-5:")
-	fmt.Print("		1--view all")
-	fmt.Print("		2--view by artist")
-	fmt.Print("		3--add album")
-	fmt.Print("		4--delete album ")
-	fmt.Scanln(&userInput)
+	for i := 1; i < 10; i++ {
+		fmt.Print("select from 1-5 ")
+		fmt.Print("	\n1--view all ")
+		fmt.Print("	\n2--view by artist ")
+		fmt.Print("	\n3--add album ")
+		fmt.Print("	\n4--delete album ")
+		fmt.Print("	\nEnter anything else to quit :=+>")
+		fmt.Scanln(&userInput)
 
-	switch userInput {
-	case 1:
-		{
-
-		}
-	case 2:
-		{
-			albums, err := albumsByArtist("John Coltrane")
-			if err != nil {
-				log.Fatal(err)
+		switch userInput {
+		case 1:
+			{
+				albums, err := all_album()
+				if err != nil {
+					log.Fatal(err)
+				}
+				fmt.Println(albums)
 			}
-			fmt.Printf("Albums found: %v\n", albums)
+		case 2:
+			{
+				albums, err := albumsByArtist("John Coltrane")
+				if err != nil {
+					log.Fatal(err)
+				}
+				fmt.Printf("Albums found: %v\n", albums)
 
-		}
-	case 3:
-		{
-			albID, err := addAlbum(Album{
-				Title:  "The Modern Sound of Betty Carter",
-				Artist: "Betty Carter",
-				Price:  49.99,
-			})
-			if err != nil {
-				log.Fatal(err)
 			}
-			fmt.Printf("ID of added album: %v\n", albID)
+		case 3:
+			{
+				albID, err := addAlbum(Album{
+					Title:  "The Modern Sound of Betty Carter",
+					Artist: "Betty Carter",
+					Price:  49.99,
+				})
+				if err != nil {
+					log.Fatal(err)
+				}
+				fmt.Printf("ID of added album: %v\n", albID)
 
-		}
-	case 4:
-		{
-			albums, err := all_album()
-			if err != nil {
-				log.Fatal(err)
 			}
-			fmt.Println(albums)
+		case 4:
+			{
+
+			}
+
+		default:
+			//break
+			return
 		}
 
-	default:
-		/* code */
-		return
 	}
-
 }
-
 func all_album() ([]Album, error) {
 	// An albums slice to hold data from returned rows.
 	var albums []Album
