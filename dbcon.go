@@ -3,9 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
 	"log"
-	
+
+	"github.com/go-sql-driver/mysql"
 )
 
 var db *sql.DB
@@ -97,6 +97,7 @@ func main() {
 	}
 }
 func all_album() ([]Album, error) {
+
 	// An albums slice to hold data from returned rows.
 	var albums []Album
 

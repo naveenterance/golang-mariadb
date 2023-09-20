@@ -1,20 +1,20 @@
 package main
 
 import (
-    "log"
-    "os"
-    "text/template"
+	"log"
+	"os"
+	"text/template"
 )
 
 var tpl *template.Template
 
 func init() {
-    tpl = template.Must(template.ParseFiles("tpl.gohtml"))
+	tpl = template.Must(template.ParseFiles("webpages/tpl.gohtml"))
 }
 
 func main() {
-    err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", 42)
-    if err != nil {
-        log.Fatalln(err)
-    }
+	err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", 42)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
