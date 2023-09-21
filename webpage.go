@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"os"
+	"net/http"
 	"text/template"
 )
 
@@ -13,8 +13,14 @@ func init() {
 }
 
 func main() {
-	err := tpl.ExecuteTemplate(os.Stdout, "tpl.gohtml", 42)
+	http.HandleFunc("/", foo)
+	http.ListenAndServe(":8080", nil)
+}
+
+func foo(reswt http.ResponseWriter, req *http.Request) {
+	err := tpl.ExecuteTemplate(reswt, "tpl.gohtml", 3442)
 	if err != nil {
 		log.Fatalln(err)
 	}
+
 }
