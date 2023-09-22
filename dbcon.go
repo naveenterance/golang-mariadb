@@ -86,6 +86,10 @@ func main() {
 			}
 		case 4:
 			{
+				err := deletealbumsByArtist("Betty Carter")
+				if err != nil {
+					log.Fatal(err)
+				}
 
 			}
 
@@ -161,4 +165,21 @@ func addAlbum(alb Album) (int64, error) {
 		return 0, fmt.Errorf("addAlbum: %v", err)
 	}
 	return id, nil
+}
+
+// albumsByArtist queries for albums that have the specified artist name.
+func deletealbumsByArtist(name string) error {
+	// An albums slice to hold data from returned rows.
+	/*_, err := db.Query("SELECT * FROM album WHERE artist = ?", name)
+	if err != nil {
+		println(" already deleted")
+	}*/
+
+	db.Query("DELETE  FROM album WHERE artist = ?", name)
+
+	//defer rows.Close()
+
+	println("deleted")
+	return nil
+
 }
