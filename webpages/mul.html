@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>User Data</title>
+</head>
+
+<body>
+    <h1>List of Persons</h1>
+    <ul>
+        {{range .}}
+        <li>
+            ID: {{.ID}}<br>
+            Title: {{.Title}}<br>
+            Artist: {{.Artist}}<br>
+        </li>
+        {{end}}
+    </ul>
+</body>
+
+</html>

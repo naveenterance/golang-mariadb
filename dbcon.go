@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
+	"text/template"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -15,6 +17,12 @@ type Album struct {
 	Title  string
 	Artist string
 	Price  float32
+}
+
+var tpl *template.Template
+
+func init() {
+	tpl = template.Must(template.ParseFiles("webpages/mul.gohtml"))
 }
 
 func main() {
@@ -56,11 +64,8 @@ func main() {
 		switch userInput {
 		case 1:
 			{
-				albums, err := all_album()
-				if err != nil {
-					log.Fatal(err)
-				}
-				fmt.Println(albums)
+				http.HandleFunc("/", foo)
+				http.ListenAndServe(":8080", nil)
 			}
 		case 2:
 			{
@@ -184,5 +189,32 @@ func deletealbumsByArtist(name string) error {
 
 	println("deleted")
 	return nil
+
+}
+
+func foo(reswt http.ResponseWriter, req *http.Request) {
+
+	var albums []Album
+
+	rows, err := db.Query("SELECT * FROM album")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer rows.Close()
+	// Loop through rows, using Scan to assign column data to struct fields.
+	for rows.Next() {
+		var alb Album
+		if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
+			fmt.Printf("error")
+		}
+
+		albums = append(albums, alb)
+	}
+
+	err = tpl.ExecuteTemplate(reswt, "mul.gohtml", albums)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 }
