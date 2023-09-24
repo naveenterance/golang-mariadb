@@ -64,7 +64,7 @@ func main() {
 			}
 		case 2:
 			{
-				albums, err := albumsByArtist("John Coltrane")
+				albums, err := albumsByArtist("Johnd Coltrane")
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -170,10 +170,13 @@ func addAlbum(alb Album) (int64, error) {
 // albumsByArtist queries for albums that have the specified artist name.
 func deletealbumsByArtist(name string) error {
 	// An albums slice to hold data from returned rows.
-	/*_, err := db.Query("SELECT * FROM album WHERE artist = ?", name)
-	if err != nil {
-		println(" already deleted")
-	}*/
+	var enough bool
+	if err := db.QueryRow("SELECT * FROM album WHERE artist = ?", name).Scan(&enough); err != nil {
+		if err == sql.ErrNoRows {
+			println(" already deleted")
+			return nil
+		}
+	}
 
 	db.Query("DELETE  FROM album WHERE artist = ?", name)
 
