@@ -73,23 +73,13 @@ func main() {
 			}
 		case 3:
 			{
-				albID, err := addAlbum(Album{
-					Title:  "The Modern Sound of Betty Carter",
-					Artist: "Betty Carter",
-					Price:  49.99,
-				})
-				if err != nil {
-					log.Fatal(err)
-				}
-				fmt.Printf("ID of added album: %v\n", albID)
-
+				http.HandleFunc("/", addAlbum)
+				http.ListenAndServe(":8080", nil)
 			}
 		case 4:
 			{
-				err := deletealbumsByArtist("Betty Carter")
-				if err != nil {
-					log.Fatal(err)
-				}
+				http.HandleFunc("/", delete_by_artist)
+				http.ListenAndServe(":8080", nil)
 
 			}
 
@@ -99,35 +89,6 @@ func main() {
 		}
 
 	}
-}
-
-func addAlbum(alb Album) (int64, error) {
-	result, err := db.Exec("INSERT INTO album (title, artist, price) VALUES (?, ?, ?)", alb.Title, alb.Artist, alb.Price)
-	if err != nil {
-		return 0, fmt.Errorf("addAlbum: %v", err)
-	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("addAlbum: %v", err)
-	}
-	return id, nil
-}
-
-func deletealbumsByArtist(name string) error {
-
-	var enough bool
-	if err := db.QueryRow("SELECT * FROM album WHERE artist = ?", name).Scan(&enough); err != nil {
-		if err == sql.ErrNoRows {
-			println(" already deleted")
-			return nil
-		}
-	}
-
-	db.Query("DELETE  FROM album WHERE artist = ?", name)
-
-	println("deleted")
-	return nil
-
 }
 
 func View_all(w http.ResponseWriter, r *http.Request) {
@@ -199,5 +160,55 @@ func view_by_artist(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
+	}
+}
+
+func addAlbum(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method == "GET" {
+
+		http.ServeFile(w, r, "webpages/form.html")
+	} else if r.Method == "POST" {
+
+		err := r.ParseForm()
+		if err != nil {
+			fmt.Fprintf(w, "Error parsing form data")
+			return
+		}
+
+		title := r.Form.Get("title")
+		artist := r.Form.Get("artist")
+		price := r.Form.Get("price")
+		_, err = db.Exec("INSERT INTO album (title, artist, price) VALUES (?, ?, ?)", title, artist, price)
+		if err != nil {
+			fmt.Errorf("addAlbum: %v", err)
+			return
+		}
+
+		fmt.Println("entered")
+		return
+	}
+}
+
+func delete_by_artist(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method == "GET" {
+
+		http.ServeFile(w, r, "webpages/submit.html")
+	} else if r.Method == "POST" {
+
+		err := r.ParseForm()
+		if err != nil {
+			fmt.Fprintf(w, "Error parsing form data")
+			return
+		}
+
+		name := r.Form.Get("name")
+
+		db.Query("DELETE  FROM album WHERE artist = ?", name)
+
+		println("deleted")
+		return
+
 	}
 }
