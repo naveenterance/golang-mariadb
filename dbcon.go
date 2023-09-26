@@ -22,22 +22,20 @@ type Album struct {
 var tpl *template.Template
 
 func init() {
-	tpl = template.Must(template.ParseFiles("webpages/mul.gohtml"))
+	tpl = template.Must(template.ParseFiles("webpages/mul.html"))
 }
 
 func main() {
-	// Capture connection properties.
+
 	cfg := mysql.Config{
-		User:   "root",
-		Passwd: "nst",
-		//User:                 os.Getenv("DBUSER"),
-		//Passwd:               os.Getenv("DBPASS"),
+		User:                 "root",
+		Passwd:               "nst",
 		Net:                  "tcp",
 		Addr:                 "127.0.0.1:3306",
 		DBName:               "recordings",
 		AllowNativePasswords: true,
 	}
-	// Get a database handle.
+
 	var err error
 	db, err = sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
@@ -64,16 +62,13 @@ func main() {
 		switch userInput {
 		case 1:
 			{
-				http.HandleFunc("/", foo)
+				http.HandleFunc("/", View_all)
 				http.ListenAndServe(":8080", nil)
 			}
 		case 2:
 			{
-				albums, err := albumsByArtist("Johnd Coltrane")
-				if err != nil {
-					log.Fatal(err)
-				}
-				fmt.Printf("Albums found: %v\n", albums)
+				http.HandleFunc("/", view_by_artist)
+				http.ListenAndServe(":8080", nil)
 
 			}
 		case 3:
@@ -99,67 +94,13 @@ func main() {
 			}
 
 		default:
-			//break
+
 			return
 		}
 
 	}
 }
-func all_album() ([]Album, error) {
 
-	// An albums slice to hold data from returned rows.
-	var albums []Album
-
-	rows, err := db.Query("SELECT * FROM album")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer rows.Close()
-	// Loop through rows, using Scan to assign column data to struct fields.
-	for rows.Next() {
-		var alb Album
-		if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
-			fmt.Printf("error")
-		}
-
-		albums = append(albums, alb)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("db error")
-	}
-	return albums, nil
-	//fmt.Printf("%v", albums)
-
-}
-
-// albumsByArtist queries for albums that have the specified artist name.
-func albumsByArtist(name string) ([]Album, error) {
-	// An albums slice to hold data from returned rows.
-	var albums []Album
-
-	rows, err := db.Query("SELECT * FROM album WHERE artist = ?", name)
-	if err != nil {
-		return nil, fmt.Errorf("albumsByArtist %q: %v", name, err)
-	}
-	defer rows.Close()
-	// Loop through rows, using Scan to assign column data to struct fields.
-	for rows.Next() {
-		var alb Album
-		if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
-			return nil, fmt.Errorf("albumsByArtist %q: %v", name, err)
-		}
-		albums = append(albums, alb)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("albumsByArtist %q: %v", name, err)
-	}
-	return albums, nil
-
-}
-
-// addAlbum adds the specified album to the database,
-// returning the album ID of the new entry
 func addAlbum(alb Album) (int64, error) {
 	result, err := db.Exec("INSERT INTO album (title, artist, price) VALUES (?, ?, ?)", alb.Title, alb.Artist, alb.Price)
 	if err != nil {
@@ -172,9 +113,8 @@ func addAlbum(alb Album) (int64, error) {
 	return id, nil
 }
 
-// albumsByArtist queries for albums that have the specified artist name.
 func deletealbumsByArtist(name string) error {
-	// An albums slice to hold data from returned rows.
+
 	var enough bool
 	if err := db.QueryRow("SELECT * FROM album WHERE artist = ?", name).Scan(&enough); err != nil {
 		if err == sql.ErrNoRows {
@@ -185,14 +125,12 @@ func deletealbumsByArtist(name string) error {
 
 	db.Query("DELETE  FROM album WHERE artist = ?", name)
 
-	//defer rows.Close()
-
 	println("deleted")
 	return nil
 
 }
 
-func foo(reswt http.ResponseWriter, req *http.Request) {
+func View_all(w http.ResponseWriter, r *http.Request) {
 
 	var albums []Album
 
@@ -202,7 +140,7 @@ func foo(reswt http.ResponseWriter, req *http.Request) {
 	}
 
 	defer rows.Close()
-	// Loop through rows, using Scan to assign column data to struct fields.
+
 	for rows.Next() {
 		var alb Album
 		if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
@@ -210,11 +148,56 @@ func foo(reswt http.ResponseWriter, req *http.Request) {
 		}
 
 		albums = append(albums, alb)
+
 	}
 
-	err = tpl.ExecuteTemplate(reswt, "mul.gohtml", albums)
+	tmpl := template.Must(template.ParseFiles("webpages/mul.html"))
+	err = tmpl.Execute(w, albums)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return
 	}
+}
 
+func view_by_artist(w http.ResponseWriter, r *http.Request) {
+
+	var albums []Album
+
+	if r.Method == "GET" {
+
+		http.ServeFile(w, r, "webpages/submit.html")
+	} else if r.Method == "POST" {
+
+		err := r.ParseForm()
+		if err != nil {
+			fmt.Fprintf(w, "Error parsing form data")
+			return
+		}
+
+		name := r.Form.Get("name")
+
+		rows, err := db.Query("SELECT * FROM album WHERE artist = ?", name)
+		if err != nil {
+			fmt.Printf("error")
+			return
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var alb Album
+			if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
+				fmt.Printf("error")
+			}
+
+			albums = append(albums, alb)
+
+		}
+
+		tmpl := template.Must(template.ParseFiles("webpages/mul.html"))
+		err = tmpl.Execute(w, albums)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
 }

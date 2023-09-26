@@ -19,25 +19,18 @@ type Album struct {
 	Price  float32
 }
 
-/*var tpl *template.Template
-
-func init() {
-	tpl = template.Must(template.ParseFiles("webpages/mul.gohtml"))
-}*/
-
 func main() {
-	// Capture connection properties.
+
 	cfg := mysql.Config{
 		User:   "root",
 		Passwd: "nst",
-		//User:                 os.Getenv("DBUSER"),
-		//Passwd:               os.Getenv("DBPASS"),
+
 		Net:                  "tcp",
 		Addr:                 "127.0.0.1:3306",
 		DBName:               "recordings",
 		AllowNativePasswords: true,
 	}
-	// Get a database handle.
+
 	var err error
 	db, err = sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
@@ -54,35 +47,45 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func view_by_artist(w http.ResponseWriter, r *http.Request) {
 
 	var albums []Album
 
-	rows, err := db.Query("SELECT * FROM album")
-	if err != nil {
-		log.Fatal(err)
-	}
+	if r.Method == "GET" {
 
-	defer rows.Close()
-	// Loop through rows, using Scan to assign column data to struct fields.
-	for rows.Next() {
-		var alb Album
-		if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
-			fmt.Printf("error")
+		http.ServeFile(w, r, "webpages/submit.html")
+	} else if r.Method == "POST" {
+
+		err := r.ParseForm()
+		if err != nil {
+			fmt.Fprintf(w, "Error parsing form data")
+			return
 		}
 
-		albums = append(albums, alb)
+		name := r.Form.Get("name")
 
-	}
+		rows, err := db.Query("SELECT * FROM album WHERE artist = ?", name)
+		if err != nil {
+			fmt.Printf("error")
+			return
+		}
+		defer rows.Close()
 
-	/*err = tpl.ExecuteTemplate(reswt, "mul.gohtml", albums)
-	if err != nil {
-		log.Fatalln(err)
-	}*/
-	tmpl := template.Must(template.ParseFiles("webpages/mul.html"))
-	err = tmpl.Execute(w, albums)
-	if err != nil {
-		fmt.Println(err)
-		return
+		for rows.Next() {
+			var alb Album
+			if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
+				fmt.Printf("error")
+			}
+
+			albums = append(albums, alb)
+
+		}
+
+		tmpl := template.Must(template.ParseFiles("webpages/mul.html"))
+		err = tmpl.Execute(w, albums)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	}
 }
